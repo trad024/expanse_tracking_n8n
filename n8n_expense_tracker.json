@@ -11,8 +11,8 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        -112,
-        16
+        -128,
+        96
       ],
       "id": "fcef8766-dc92-4d50-929e-ceba016a405f",
       "name": "Telegram Trigger",
@@ -52,8 +52,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        80,
-        16
+        96,
+        96
       ],
       "id": "3ed4a1c9-7046-4206-b44a-5c2d02c83717",
       "name": "If"
@@ -69,8 +69,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        288,
-        -80
+        496,
+        -128
       ],
       "id": "041195f1-f42c-410e-8ced-742066535bcb",
       "name": "AI Agent"
@@ -83,8 +83,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        240,
-        176
+        496,
+        96
       ],
       "id": "5f3787a2-e0c2-419a-954e-ab07e8d74ee4",
       "name": "Groq Chat Model",
@@ -102,8 +102,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        592,
-        -80
+        1184,
+        80
       ],
       "id": "5637a386-49b0-4d7a-8d42-54e557a4cd59",
       "name": "Code in JavaScript"
@@ -127,8 +127,8 @@
           "mappingMode": "defineBelow",
           "value": {
             "Date": "={{ $json.date }}",
-            "type": "={{ $json.type }}",
             "amount": "={{ $json.amount }}",
+            "type": "={{ $json.type }}",
             "description": "={{ $json.description }}"
           },
           "matchingColumns": [],
@@ -182,8 +182,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        832,
-        -80
+        1392,
+        80
       ],
       "id": "c37a6393-86cf-49b0-9cf1-eca4df62be83",
       "name": "Append row in sheet",
@@ -197,16 +197,16 @@
     {
       "parameters": {
         "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
-        "text": "={{ $json.Type }} Locked! \n{{ $json.Amount }} -> {{ $json.Category }} \n{{ $json.Description }}\n{{ $json.Date }}",
+        "text": "={{ $json.Type }} Locked!\n\n💰 {{ $json.Amount }} -> {{ $json.Category }}\n📝 {{ $json.Description }}\n📅 {{ $json.Date }}",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1040,
-        -80
+        1600,
+        80
       ],
-      "id": "b46be47a-9601-446e-bbaf-ce52dfcc4dad",
+      "id": "7f6ddb96-226f-44b4-9187-93237b8044d7",
       "name": "Send a text message",
       "webhookId": "db10acf4-599b-49e2-b33d-c800d26ed873",
       "credentials": {
@@ -215,6 +215,96 @@
           "name": "Telegram account"
         }
       }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.photo[0].file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        240
+      ],
+      "id": "255f1f65-0a5a-4181-abe1-e8ab680cec9f",
+      "name": "Get a file",
+      "webhookId": "8548ab25-64f7-4fdb-a8e7-abe5e230cf9a",
+      "credentials": {
+        "telegramApi": {
+          "id": "sxknCRIi4f0G4rp1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentType": "image_url",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mistralAi",
+      "typeVersion": 1,
+      "position": [
+        496,
+        240
+      ],
+      "id": "3df2c6f8-04ba-4482-a494-e664abd4fa2b",
+      "name": "Extract text",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "hMsaglVBpL6fs5k4",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.pages[0].markdown }}",
+        "options": {
+          "systemMessage": "You are an expense tracking assistant. Extract financial information from receipts or text messages and return ONLY a raw JSON object. Follow these rules strictly:\n\n1. **Type:**\n   - \"Expense\" if the text includes: spent, paid, bought, ordered.\n   - \"Income\" if the text includes: received, earned, salary, credited, got paid.\n\n2. **Amount:**\n   - Extract the numerical value in Dinars.\n   - If the receipt shows `Total = X, Cash = Y, Change = Z`, then `amount = Y - X`.\n\n3. **Category:**\n   - Food, Transport, Shopping, Bills, Entertainment, Health, Travel, Salary, Freelance, Other.\n\n4. **Description:**\n   - Provide a brief description of the transaction.\n\n5. **Date:**\n   - Use `YYYY-MM-DD` format.\n   - If no date is mentioned, use today's date.\n\n**JSON Template:**\n\n```json\n{\n  \"type\": \"\",\n  \"amount\": ,\n  \"category\": \"\",\n  \"description\": \"\",\n  \"date\": \"\"\n}\n```\n\n**Examples:**\n\nFor a message like \"Spent 20 Dinars on food at Cafe on 2023-10-25\":\n\n```json\n{\n  \"type\": \"Expense\",\n  \"amount\": 20,\n  \"category\": \"Food\",\n  \"description\": \"Cafe\",\n  \"date\": \"2023-10-25\"\n}\n```\n\nFor a message like \"Received 5000 Dinars salary on 2023-10-25\":\n\n```json\n{\n  \"type\": \"Income\",\n  \"amount\": 5000,\n  \"category\": \"Salary\",\n  \"description\": \"Monthly salary\",\n  \"date\": \"2023-10-25\"\n}\n```\n\n**CRITICAL:**\n- Return ONLY a raw JSON object.\n- No markdown, no backticks, no explanations, no text before or after.\n- Ensure the JSON is valid and correctly formatted.\n\n---"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        688,
+        240
+      ],
+      "id": "524a2b0c-118f-4d20-8f54-5599f7d096dc",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "groq/compound",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        672,
+        416
+      ],
+      "id": "bf312339-635a-4ba9-b275-579a01763131",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "w8hwXsMOWLC8ZbX9",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        976,
+        80
+      ],
+      "id": "399266db-0cdc-4125-86c3-d1332e8494ae",
+      "name": "Merge"
     }
   ],
   "pinData": {},
@@ -238,6 +328,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -256,7 +353,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript",
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
@@ -279,6 +376,66 @@
         [
           {
             "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Extract text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract text": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
             "type": "main",
             "index": 0
           }
