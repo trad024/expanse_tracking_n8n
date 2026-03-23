@@ -51,4 +51,22 @@ This n8n workflow allows you to track expenses and income directly from Telegram
 
 ## Example Inputs
 
-**Text:**
+**Text:**Spent 25 on dinner
+
+
+**Image:**
+- Upload a receipt photo in Telegram
+
+## Output (Google Sheets)
+- Date
+- Type
+- Amount
+- Description
+
+## Notes
+- Works with both text and image inputs
+- AI ensures structured and clean data
+- Make sure your Telegram bot is active
+
+---
+Simple automated expense tracking 🚀
